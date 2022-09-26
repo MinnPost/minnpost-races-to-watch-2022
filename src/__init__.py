@@ -19,4 +19,4 @@ def create_app(config_class=Config):
 
     return app
 
-from src import spreadsheet
+from src import parser

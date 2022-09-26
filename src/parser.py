@@ -5,6 +5,8 @@ import requests
 from flask import current_app, request
 from slugify import slugify
 
+region_field = "region"
+
 def parser():
     output = {}
     data = {}
@@ -53,20 +55,10 @@ def parser():
                 if candidates is not None:
                     data["candidates"] = []
                     for candidate in candidates:
-                        # make an ID
-                        candidate_id = candidate["office-sought"].replace(" ", "").lower() + "-" + candidate["name"].replace(" ", "").lower()
-                        candidate["candidate-id"] = candidate_id
-                        # add the party id
-                        if candidate["party"] != None:
-                            candidate["party-id"] = slugify(candidate["party"], to_lower=True)
-                        # add the race for this candidate
-                        race_key = [k for k, race in enumerate(data["races"]) if race["office"] == candidate["office-sought"]][0]
-                        candidate["race-id"] = slugify(data["races"][race_key]["office"], to_lower=True)
-                        # format the boolean fields
-                        candidate["incumbent"] = convert_xls_boolean(candidate["incumbent"])
-                        candidate["endorsed"] = convert_xls_boolean(candidate["endorsed"])
+                        candidate = format_candidate(candidate, 'house', races)
                         # add to the returnable data
-                        data["candidates"].append(candidate)
+                        if candidate != None:
+                            data["candidates"].append(candidate)
                 
                 # set metadata and send the customized json output to the api
                 if "generated" in result_json:
@@ -101,14 +93,60 @@ def parser():
         output = {} # something for empty data
     return output
 
+
+def format_candidate(candidate, chamber, races):
+
+    # set up candidate
+    if candidate["office-sought"] != None and candidate["name"] != None:
+
+        # make an ID
+        candidate_id = candidate["office-sought"].replace(" ", "").lower() + "-" + candidate["name"].replace(" ", "").lower()
+        candidate["candidate-id"] = candidate_id
+
+        # get a region for this office
+        for race in races:
+            if str(race["office"]) == str(candidate["office-sought"]):
+                region = race[region_field]
+                break
+        else:
+            region = None
+        if region != None:
+            candidate["region"] = region
+            candidate["region-id"] = slugify(candidate["region"], to_lower=True)
+        
+        # add the office for this candidate
+        race_key = [k for k, race in enumerate(races) if race["office"] == candidate["office-sought"]][0]
+        candidate["race-id"] = slugify(races[race_key]["office"], to_lower=True)
+        candidate["chamber"] = get_chamber(candidate["race-id"])
+
+        # add the party id
+        if candidate["party"] != None:
+            candidate["party-id"] = slugify(candidate["party"], to_lower=True)
+        # format the boolean fields
+        candidate["incumbent"] = convert_xls_boolean(candidate["incumbent"])
+        candidate["endorsed"] = convert_xls_boolean(candidate["endorsed"])
+    else:
+        candidate = None
+        
+    return candidate
+
+
+def get_chamber(race_id):
+    if race_id.find("senate") != -1:
+        chamber = "Senate"
+    else:
+        chamber = "House"
+    return chamber
+
+
 def convert_xls_boolean(string):
     if string == None:
         value = False
     else:
         string = string.lower()
-        if string == "yes" or string == "true":
+        if string == "yes" or string == "true" or string == "y":
             value = True
-        elif string == "no" or string == "false":
+        elif string == "no" or string == "false" or string == "n":
             value = False
         else:
             value = bool(string)
