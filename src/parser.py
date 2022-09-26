@@ -97,9 +97,19 @@ def parser():
 def format_race(race):
     # add the office id
     if race["office"] != None:
+        race["region-id"] = slugify(race["region"], to_lower=True)
         race["office-id"] = slugify(race["office"], to_lower=True)
         race["chamber"] = get_chamber(race["office-id"])
         race["district"] = get_district(race["office-id"])
+        # add the party id for the previous election numbers
+        if race["2016-20-comp"].find("D") != -1:
+            race["2016-20-party-id"] = slugify("DFL", to_lower=True)
+        elif race["2016-20-comp"].find("R") != -1:
+            race["2016-20-party-id"] = slugify("Republican", to_lower=True)
+        if race["2016-pres"].find("D") != -1:
+            race["2016-pres-party-id"] = slugify("DFL", to_lower=True)
+        elif race["2016-pres"].find("R") != -1:
+            race["2016-pres-party-id"] = slugify("Republican", to_lower=True)
     else:
         race = None
         
@@ -114,17 +124,6 @@ def format_candidate(candidate, chamber, races):
         # make an ID
         candidate_id = candidate["office-sought"].replace(" ", "").lower() + "-" + candidate["name"].replace(" ", "").lower()
         candidate["candidate-id"] = candidate_id
-
-        # get a region for this office
-        for race in races:
-            if str(race["office"]) == str(candidate["office-sought"]):
-                region = race[region_field]
-                break
-        else:
-            region = None
-        if region != None:
-            candidate["region"] = region
-            candidate["region-id"] = slugify(candidate["region"], to_lower=True)
         
         # add the office for this candidate
         race_key = [k for k, race in enumerate(races) if race["office"] == candidate["office-sought"]][0]
