@@ -47,10 +47,10 @@ def parser():
                 if races is not None:
                     data["races"] = []
                     for race in races:
-                        # add the office id
-                        if race["office"] != None:
-                            race["office-id"] = slugify(race["office"], to_lower=True)
-                        data["races"].append(race)
+                        race = format_race(race)
+                        # add to the returnable data
+                        if race != None:
+                            data["races"].append(race)
 
                 if candidates is not None:
                     data["candidates"] = []
@@ -94,6 +94,18 @@ def parser():
     return output
 
 
+def format_race(race):
+    # add the office id
+    if race["office"] != None:
+        race["office-id"] = slugify(race["office"], to_lower=True)
+        race["chamber"] = get_chamber(race["office-id"])
+        race["district"] = get_district(race["office-id"])
+    else:
+        race = None
+        
+    return race
+
+
 def format_candidate(candidate, chamber, races):
 
     # set up candidate
@@ -118,7 +130,6 @@ def format_candidate(candidate, chamber, races):
         race_key = [k for k, race in enumerate(races) if race["office"] == candidate["office-sought"]][0]
         candidate["race-id"] = slugify(races[race_key]["office"], to_lower=True)
         candidate["chamber"] = get_chamber(candidate["race-id"])
-        candidate["district"] = get_district(candidate["race-id"])
 
         # add the party id
         if candidate["party"] != None:
