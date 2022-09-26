@@ -118,6 +118,7 @@ def format_candidate(candidate, chamber, races):
         race_key = [k for k, race in enumerate(races) if race["office"] == candidate["office-sought"]][0]
         candidate["race-id"] = slugify(races[race_key]["office"], to_lower=True)
         candidate["chamber"] = get_chamber(candidate["race-id"])
+        candidate["district"] = get_district(candidate["race-id"])
 
         # add the party id
         if candidate["party"] != None:
@@ -129,6 +130,14 @@ def format_candidate(candidate, chamber, races):
         candidate = None
         
     return candidate
+
+
+def get_district(race_id):
+    if race_id.find("senate") != -1:
+        district = race_id.replace('senate-district-', '')
+    else:
+        district = race_id.replace('house-district-', '')
+    return district
 
 
 def get_chamber(race_id):
