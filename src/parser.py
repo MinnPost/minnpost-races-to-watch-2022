@@ -106,6 +106,10 @@ def format_race(race):
             race["2016-20-party-id"] = slugify("DFL", to_lower=True)
         elif race["2016-20-comp"].find("R") != -1:
             race["2016-20-party-id"] = slugify("Republican", to_lower=True)
+        if race["2020-pres"].find("D") != -1:
+            race["2020-pres-party-id"] = slugify("DFL", to_lower=True)
+        elif race["2020-pres"].find("R") != -1:
+            race["2020-pres-party-id"] = slugify("Republican", to_lower=True)
         if race["2016-pres"].find("D") != -1:
             race["2016-pres-party-id"] = slugify("DFL", to_lower=True)
         elif race["2016-pres"].find("R") != -1:
