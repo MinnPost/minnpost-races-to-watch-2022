@@ -151,6 +151,7 @@ def get_district(race_id):
         district = race_id.replace('senate-district-', '')
     else:
         district = race_id.replace('house-district-', '')
+        district = str(district).zfill(3)
     return district
 
 
