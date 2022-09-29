@@ -114,6 +114,11 @@ def format_race(race):
             race["2016-pres-party-id"] = slugify("DFL", to_lower=True)
         elif race["2016-pres"].find("R") != -1:
             race["2016-pres-party-id"] = slugify("Republican", to_lower=True)
+        # add expenditures
+        if race["expenditures-dfl"]:
+            race["expenditures-dfl"] = "{:0,.2f}".format(float(race["expenditures-dfl"]))
+        if race["expenditures-republican"]:
+            race["expenditures-republican"] = "{:0,.2f}".format(float(race["expenditures-republican"]))
     else:
         race = None
         
